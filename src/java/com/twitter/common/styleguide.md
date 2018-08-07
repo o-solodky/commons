@@ -102,30 +102,11 @@ Method declaration continuations.
       ...
     }
 
-    // Nicer, as the extra newline gives visual separation to the method body.
-    String downloadAnInternet(Internet internet, Tubes tubes, Blogosphere blogs,
-        Amount<Long, Data> bandwidth) {
-
-      tubes.download(internet);
-      ...
-    }
-
-    // Also acceptable, but may be awkward depending on the column depth of the opening parenthesis.
+    // Also acceptable.
     public String downloadAnInternet(Internet internet,
                                      Tubes tubes,
                                      Blogosphere blogs,
                                      Amount<Long, Data> bandwidth) {
-      tubes.download(internet);
-      ...
-    }
-
-    // Preferred for easy scanning and extra column space.
-    public String downloadAnInternet(
-        Internet internet,
-        Tubes tubes,
-        Blogosphere blogs,
-        Amount<Long, Data> bandwidth) {
-
       tubes.download(internet);
       ...
     }
@@ -156,13 +137,9 @@ Method declaration continuations.
         .addAll(application.getModules())
         .build();
 
-#### No tabs
-An oldie, but goodie.  We've found tab characters to cause more harm than good.
-
-#### 100 column limit
+#### 170 characters limit
 You should follow the convention set by the body of code you are working with.
-We tend to use 100 columns for a balance between fewer continuation lines but still easily
-fitting two editor tabs side-by-side on a reasonably-high resolution display.
+We tend to use 170 characters.
 
 #### CamelCase for types, camelCase for variables, UPPER_SNAKE for constants
 
@@ -865,53 +842,6 @@ Use `@Nullable` where prudent, but favor
 [Optional](http://docs.guava-libraries.googlecode.com/git-history/v11.0.2/javadoc/com/google/common/base/Optional.html)
 over `@Nullable`.  `Optional` provides better semantics around absence of a value.
 
-#### Clean up with finally
-
-    :::java
-    FileInputStream in = null;
-    try {
-      ...
-    } catch (IOException e) {
-      ...
-    } finally {
-      Closeables.closeQuietly(in);
-    }
-
-Even if there are no checked exceptions, there are still cases where you should use try/finally
-to guarantee resource symmetry.
-
-    :::java
-    // Bad.
-    //   - Mutex is never unlocked.
-    mutex.lock();
-    throw new NullPointerException();
-    mutex.unlock();
-
-    // Good.
-    mutex.lock();
-    try {
-      throw new NullPointerException();
-    } finally {
-      mutex.unlock();
-    }
-
-    // Bad.
-    //   - Connection is not closed if sendMessage throws.
-    if (receivedBadMessage) {
-      conn.sendMessage("Bad request.");
-      conn.close();
-    }
-
-    // Good.
-    if (receivedBadMessage) {
-      try {
-        conn.sendMessage("Bad request.");
-      } finally {
-        conn.close();
-      }
-    }
-
-
 ### Clean code
 
 #### Disambiguate
@@ -1078,27 +1008,6 @@ callers when it comes to exceptions.
 #### StringBuilder over StringBuffer
 [StringBuffer](http://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html) is thread-safe,
 which is rarely needed.
-
-#### ScheduledExecutorService over Timer
-Drawing from [Java Concurrency in Practice](#recommended-reading) (directly borrowed from
-a stackoverflow
-[question](http://stackoverflow.com/questions/409932/java-timer-vs-executorservice)).
-
-- `Timer` can be sensitive to changes in the system clock, `ScheduledThreadPoolExecutor` is not
-
-- `Timer` has only one execution thread, so long-running task can delay other tasks.
-
-- `ScheduledThreadPoolExecutor` can be configured with multiple threads and a `ThreadFactory`<br />
-  *See [manage threads properly](#manage-threads-properly)*
-
-- Exceptions thrown in `TimerTask` kill the thread, rendering the `Timer` ineffective.
-
-- ThreadPoolExecutor provides `afterExceute` so you can explicitly handle execution results.
-
-#### List over Vector
-`Vector` is synchronized, which is often unneeded.  When synchronization is desirable,
-a [synchronized list](http://docs.oracle.com/javase/7/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
-can usually serve as a drop-in replacement for `Vector`.
 
 ### equals() and hashCode()
 If you override one, you must implement both.
